@@ -15,7 +15,7 @@ def create_pool(loop, **kw):
         port = kw.get('port',3306),
         user = kw.get('user','root'),
         password = kw.get('password','12345'),
-        db = kw.get('db',''),
+        db = kw.get('db','python3'),
         charset = kw.get('charset','utf-8'),
         autocommit = kw.get('autocommit',True),
         maxsize = kw.get('maxsize',10),
@@ -162,8 +162,67 @@ class Model(dict, metaclass=ModelMetaClass):
             return None
         return cls(**rs[0])
 
+    @classmethod
+    @asyncio.coroutine
+    def findAll(cls,where=None,args=None,**kw):
+        sql = [cls.__select__]
+        if where:
+            sql.append('where')
+            sql.append(where)
+        if args is None:
+            args = []
+        orderBy = kw.get('orderBy',None)
+        if orderBy:
+            sql.append('order by')
+            sql.append(orderBy)
+        limit =kw.get('limit',None)
+        if limit is None:
+            sql.append('limit')
+            if isinstance(limit,int):
+                sql.append('?')
+                args.append(limit)
+            elif isinstance(limit,tuple) and len(limit) == 2:
+                sql.append('?','?')
+                args.append(limit)
+            else:
+                raise  ValueError('invalid limit value: %s' %str(limit))
+        rs = yield from select(' '.join(sql),args)
+        return [cls(**r) for r in rs]
 
+    @classmethod
+    @asyncio.coroutine
+    def findNumber(cls,selectField,where=None,args=None):
+        sql = ['select %s _num_ from `%s`' % (selectField, cls.__table__)]
+        if where:
+            sql.append('where')
+            sql.append(where)
+        rs = yield from select(' '.join(sql), args, 1)
+        if len(rs) == 0:
+            return None
+        return rs[0]['_num_']
 
+    @classmethod
+    @asyncio.coroutine
+    def find(cls,pk):
+        rs = yield from select('%s where `%s`=?' % (cls.__select__, cls.__primary_key__), [pk], 1)
+        if len(rs) == 0:
+            return None
+        return cls(**rs[0])
+
+    @asyncio.coroutine
+    def save(self):
+        args = list(map(self.getValue,self.__fields__))
+        args.append(self.getValue(self.__primary_key__))
+        rows = yield from execute(self.__update__,args)
+        if rows != 1:
+            logging.warning('failed to update by primary key: affected rows: %s' % rows)
+
+    @asyncio.coroutine
+    def remove(self):
+        args = [self.getValue(self.__primary_key__)]
+        rows = yield from execute(self.__delete__,args)
+        if rows != 1:
+            logging.warning('failed to remove by primary key: affected rows: %s' % rows)
 
 
 
