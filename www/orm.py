@@ -11,16 +11,16 @@ def create_pool(loop, **kw):
     logging.info('create datebase conncetion pool')
     global  __pool
     __pool = yield from aiomysql.create_pool(
-        host = kw.get('host','localhost'),
-        port = kw.get('port',3306),
-        user = kw.get('user','root'),
-        password = kw.get('password','12345'),
-        db = kw.get('db','python3'),
-        charset = kw.get('charset','utf-8'),
-        autocommit = kw.get('autocommit',True),
-        maxsize = kw.get('maxsize',10),
-        minsize = kw.get('minsize',1),
-        loop = loop
+        host=kw.get('host','localhost'),
+        port=kw.get('port',3306),
+        user=kw['user'],
+        password=kw['password'],
+        db=kw['db'],
+        charset=kw.get('charset','utf8'),
+        autocommit=kw.get('autocommit',True),
+        maxsize= kw.get('maxsize',10),
+        minsize=kw.get('minsize',1),
+        loop=loop
     )
 
 
@@ -93,7 +93,7 @@ class ModelMetaClass(type):
         if name=='Model':
             return type.__new__(cls,name,bases,attrs)
         tableName = attrs.get('__table__', None) or name
-        logging.info('found model: %s' %(name, tableName))
+        logging.info('found model: %s (table: %s)' % (name, tableName))
         mappings = dict()
         fields = []
         primaryKey = None
@@ -185,7 +185,7 @@ class Model(dict, metaclass=ModelMetaClass):
                 sql.append('?','?')
                 args.append(limit)
             else:
-                raise  ValueError('invalid limit value: %s' %str(limit))
+                raise ValueError('invalid limit value: %s' %str(limit))
         rs = yield from select(' '.join(sql),args)
         return [cls(**r) for r in rs]
 

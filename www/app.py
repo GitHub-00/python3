@@ -35,7 +35,7 @@ def logger_factory(app, handler):
     @asyncio.coroutine
     def logger(request):
         logging.info('request: %s %s' % (request.method, request.path))
-        return (yield  from handler(request))
+        return (yield from handler(request))
     return logger
 
 @asyncio.coroutine
@@ -111,9 +111,9 @@ def index(request):
 
 @asyncio.coroutine
 def init(loop):
-    yield from orm.create_pool(loop=loop, host='127.0.0.1', port=3306, user='root', password='12345', db='python3')
+    yield from orm.create_pool(loop=loop, host='localhost', port=3306, user='root', password='12345', db='python3')
     app = web.Application(loop=loop , middlewares=[logger_factory,response_factory])
-    ini_jinja2(app,filters=dict(datetime=datetime_filter()))
+    ini_jinja2(app,filters=dict(datetime=datetime_filter))
     add_routes(app, 'handlers')
     add_static(app)
     srv = yield from loop.create_server(app.make_handler(),'127.0.0.1',9000)
