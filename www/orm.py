@@ -134,7 +134,7 @@ class Model(dict, metaclass=ModelMetaClass):
 
     def __getattr__(self, key):
         try:
-            return self(key)
+            return self[key]
         except KeyError:
             raise AttributeError(r"'Model' object has no attribute '%s'" % key)
 
