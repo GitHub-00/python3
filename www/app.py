@@ -19,16 +19,16 @@ def ini_jinja2(app, **kw):
         variable_end_string = kw.get('variable_end_string','}}'),
         auto_reload = kw.get('auto_reload',True)
     )
-    path = kw.get('path',True)
+    path = kw.get('path',None)
     if path is None:
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)),'templates')
-        logging.info('set jinja2 template path %s:' %path)
-        env = Environment(loader=FileSystemLoader(path),**option)
-        filters = kw.get('filters',None)
-        if filters is not None:
-            for name, f in filters.items():
-                env.filters[name] = f
-        app['__templating__'] = env
+    logging.info('set jinja2 template path %s:' %path)
+    env = Environment(loader=FileSystemLoader(path), **option)
+    filters = kw.get('filters', None)
+    if filters is not None:
+        for name, f in filters.items():
+            env.filters[name] = f
+    app['__templating__'] = env
 
 @asyncio.coroutine
 def logger_factory(app, handler):
@@ -106,12 +106,10 @@ def datetime_filter(t):
     return u'%s年%s月%s日' % (dt.year, dt.month, dt.day)
 
 
-def index(request):
-    return web.Response(body=b'<h1>Hello Python</h1>')
 
 @asyncio.coroutine
 def init(loop):
-    yield from orm.create_pool(loop=loop, host='localhost', port=3306, user='root', password='12345', db='python3')
+    yield from orm.create_pool(loop=loop, host='127.0.0.1', port=3306, user='root', password='12345', db='python3')
     app = web.Application(loop=loop , middlewares=[logger_factory,response_factory])
     ini_jinja2(app,filters=dict(datetime=datetime_filter))
     add_routes(app, 'handlers')

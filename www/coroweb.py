@@ -1,6 +1,6 @@
 import asyncio, os, inspect, logging, functools
 
-from urllib import parse
+from urllib import parse,request
 from aiohttp import web
 from apis import APIError
 
@@ -97,7 +97,7 @@ class RequestHandler(object):
                     params = yield from request.post()
                     kw = dict(**params)
                 else:
-                    return web.HTTPBadRequest('Unsupported content-type: %s', request.content_type)
+                    return web.HTTPBadRequest('Unsupported content-type: %s' % request.content_type)
             if request.method == 'GET':
                 qs = request.query_string
                 if qs:
@@ -105,7 +105,7 @@ class RequestHandler(object):
                     for k,v in parse.parse_qs(qs, True).items():
                         kw[k] = v[0]
         if kw is None:
-            kw = dict(**request.metch_info)
+            kw = dict(**request.match_info)
         else:
             if not self._has_var_kw_arg and self._named_kw_args:
                 copy = dict()

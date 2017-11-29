@@ -176,7 +176,7 @@ class Model(dict, metaclass=ModelMetaClass):
             sql.append('order by')
             sql.append(orderBy)
         limit =kw.get('limit',None)
-        if limit is None:
+        if limit is not None:
             sql.append('limit')
             if isinstance(limit,int):
                 sql.append('?')
@@ -185,7 +185,7 @@ class Model(dict, metaclass=ModelMetaClass):
                 sql.append('?','?')
                 args.append(limit)
             else:
-                raise ValueError('invalid limit value: %s' %str(limit))
+                raise ValueError('invalid limit value: %s' % str(limit))
         rs = yield from select(' '.join(sql),args)
         return [cls(**r) for r in rs]
 
