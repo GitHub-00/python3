@@ -113,7 +113,7 @@ class RequestHandler(object):
                     if name in kw:
                         copy[name] = kw[name]
                 kw = copy
-            for k, v in request.metch_info.items():
+            for k, v in request.match_info.items():
                 if k in kw:
                     logging.warning('Duplicate arg name in named arg and kw args %s:' % k)
                 kw[k] = v
